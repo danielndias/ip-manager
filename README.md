@@ -7,6 +7,7 @@ A small self-hosted tool for tracking IP addresses on a home network. Create a n
 - Create networks by CIDR; usable host addresses are computed automatically (network/broadcast excluded).
 - Assign a hostname, description, and MAC address to any address, picked from a dropdown of unused addresses in that network.
 - Only assigned addresses are listed — the table doesn't pad itself with hundreds of empty rows.
+- Import/export hosts as CSV per network (columns: `ip`, `hostname`, `description`, `mac_address`); import upserts by IP and skips rows outside the network or with an invalid MAC.
 - Single SQLite file for storage, no external database required.
 
 ## Requirements
