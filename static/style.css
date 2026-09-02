@@ -136,19 +136,36 @@ button:disabled {
   flex-wrap: wrap;
 }
 
-button.remove-row {
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
   background: transparent;
-  border: 1px solid var(--danger);
-  color: var(--danger);
-  padding: 6px 10px;
-  font-size: 13px;
+  border: 1px solid var(--border);
+  color: var(--muted);
 }
 
-button.remove-row:hover { background: var(--danger); color: white; }
+.icon-btn svg {
+  width: 15px;
+  height: 15px;
+}
 
-.host-table .save-row {
-  padding: 6px 10px;
-  font-size: 13px;
+.icon-btn:hover {
+  background: var(--panel);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.icon-btn.edit-row:hover { color: var(--accent); border-color: var(--accent); }
+.icon-btn.remove-row:hover { color: var(--danger); border-color: var(--danger); }
+
+tr.editing .icon-btn.edit-row {
+  background: var(--success);
+  color: white;
+  border-color: var(--success);
 }
 
 button {
@@ -208,13 +225,24 @@ code {
 }
 
 .host-table .col-ip { white-space: nowrap; width: 140px; }
-.host-table .col-status { width: 90px; }
 .host-table .col-actions { white-space: nowrap; width: 140px; }
 .host-table input[type="text"] { width: 100%; min-width: 120px; }
-.host-table tr.in-use .status-badge {
-  color: var(--success);
+
+.host-table input[type="text"][readonly] {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text);
+  cursor: default;
 }
-.status-badge { color: var(--muted); font-size: 13px; }
+
+.host-table input[type="text"][readonly]::placeholder {
+  color: var(--muted);
+}
+
+.host-table tr.editing input[type="text"] {
+  background: #0f1115;
+  border-color: var(--accent);
+}
 
 .row-message { margin-left: 8px; font-size: 12px; color: var(--muted); }
 .row-message.success { color: var(--success); }
