@@ -70,9 +70,9 @@
       <thead>
         <tr>
           <th class="col-ip">IP address</th>
-          <th>Hostname</th>
+          <th class="col-hostname">Hostname</th>
           <th>Description</th>
-          <th>MAC address</th>
+          <th class="col-mac">MAC address</th>
           <th class="col-actions"></th>
         </tr>
       </thead>
@@ -81,7 +81,7 @@
           <tr data-ip="{{ h.ip }}">
             <td class="col-ip"><code>{{ h.ip }}</code></td>
             <td><input type="text" class="hostname" value="{{ h.hostname }}" placeholder="e.g. printer" readonly></td>
-            <td><input type="text" class="description" value="{{ h.description }}" placeholder="notes" readonly></td>
+            <td><input type="text" class="description" value="{{ h.description }}" readonly></td>
             <td><input type="text" class="mac_address" value="{{ h.mac_address }}" placeholder="AA:BB:CC:DD:EE:FF" readonly></td>
             <td class="col-actions">
               <button type="button" class="icon-btn edit-row" title="Edit" aria-label="Edit">{{ edit_icon }}</button>

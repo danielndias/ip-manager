@@ -245,9 +245,13 @@ code {
   font-size: 13px;
 }
 
+.host-table { table-layout: fixed; }
 .host-table .col-ip { white-space: nowrap; width: 140px; }
-.host-table .col-actions { white-space: nowrap; width: 140px; }
-.host-table input[type="text"] { width: 100%; min-width: 120px; }
+.host-table .col-hostname { width: 160px; }
+.host-table .col-mac { width: 160px; }
+.host-table .col-actions { white-space: nowrap; width: 150px; }
+.host-table input[type="text"] { width: 100%; min-width: 0; }
+.host-table input[type="text"][readonly] { text-overflow: ellipsis; }
 
 .host-table input[type="text"][readonly] {
   background: transparent;

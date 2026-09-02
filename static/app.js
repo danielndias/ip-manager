@@ -78,7 +78,7 @@
     row.innerHTML = `
       <td class="col-ip"><code>${ip}</code></td>
       <td><input type="text" class="hostname" value="${hostname}" placeholder="e.g. printer" readonly></td>
-      <td><input type="text" class="description" value="${description}" placeholder="notes" readonly></td>
+      <td><input type="text" class="description" value="${description}" readonly></td>
       <td><input type="text" class="mac_address" value="${mac_address}" placeholder="AA:BB:CC:DD:EE:FF" readonly></td>
       <td class="col-actions">
         <button type="button" class="icon-btn edit-row" title="Edit" aria-label="Edit">${EDIT_ICON}</button>
