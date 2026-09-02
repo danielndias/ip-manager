@@ -229,15 +229,33 @@ def import_hosts(network_id):
         flash("Could not read that file as UTF-8 text.", "error")
         return redirect(url_for("network_detail", network_id=network_id))
 
-    reader = csv.DictReader(io.StringIO(content))
-    field_map = {f.strip().lower(): f for f in (reader.fieldnames or [])}
-    if "ip" not in field_map:
-        flash('CSV must have a header row including an "ip" column.', "error")
-        return redirect(url_for("network_detail", network_id=network_id))
+    try:
+        dialect = csv.Sniffer().sniff(content[:4096], delimiters=",;")
+    except csv.Error:
+        dialect = csv.excel
 
-    def field(row, name):
-        key = field_map.get(name)
-        return (row.get(key, "") or "").strip() if key else ""
+    reader = csv.DictReader(io.StringIO(content), dialect=dialect)
+    field_map = {f.strip().lower(): f for f in (reader.fieldnames or [])}
+
+    # Recognize both our own export headers and OPNsense's DHCP static-mapping export
+    # (ip_address;hw_address;client_id;hostname;description;next_server;option_data;option).
+    IP_ALIASES = ("ip", "ip_address")
+    MAC_ALIASES = ("mac_address", "hw_address")
+    HOSTNAME_ALIASES = ("hostname",)
+    DESCRIPTION_ALIASES = ("description",)
+
+    def field(row, aliases):
+        for name in aliases:
+            key = field_map.get(name)
+            if key is not None:
+                value = (row.get(key, "") or "").strip()
+                if value:
+                    return value
+        return ""
+
+    if not any(alias in field_map for alias in IP_ALIASES):
+        flash('CSV must have a header row including an "ip" or "ip_address" column.', "error")
+        return redirect(url_for("network_detail", network_id=network_id))
 
     imported = 0
     skipped = []
@@ -246,7 +264,7 @@ def import_hosts(network_id):
             if not any((row or {}).values()):
                 continue
 
-            ip = field(row, "ip")
+            ip = field(row, IP_ALIASES)
             if not ip:
                 continue
 
@@ -255,13 +273,13 @@ def import_hosts(network_id):
                 continue
 
             try:
-                mac_address = ipam.normalize_mac(field(row, "mac_address"))
+                mac_address = ipam.normalize_mac(field(row, MAC_ALIASES))
             except ValueError:
                 skipped.append(f"row {i}: invalid MAC address for {ip}")
                 continue
 
-            hostname = field(row, "hostname")
-            description = field(row, "description")
+            hostname = field(row, HOSTNAME_ALIASES)
+            description = field(row, DESCRIPTION_ALIASES)
 
             if not (hostname or description or mac_address):
                 continue

@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% block title %}{{ network.name }} · IP Manager{% endblock %}
 {% block content %}
+  {% set edit_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>{% endset %}
+  {% set save_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endset %}
+  {% set trash_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>{% endset %}
+  {% set cancel_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>{% endset %}
+  {% set upload_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>{% endset %}
+  {% set download_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>{% endset %}
+
   <section class="panel network-header">
     <div>
       <h1>{{ network.name }}</h1>
@@ -8,11 +15,22 @@
     </div>
     <div class="header-actions">
       <a class="button-link" href="{{ url_for('index') }}">&larr; All networks</a>
+      <a class="icon-btn" href="{{ url_for('export_hosts', network_id=network.id) }}" title="Export CSV" aria-label="Export CSV">{{ download_icon }}</a>
+      <button type="button" class="icon-btn" id="toggle-import-btn" title="Import CSV" aria-label="Import CSV">{{ upload_icon }}</button>
       <form method="post" action="{{ url_for('delete_network', network_id=network.id) }}"
             onsubmit="return confirm('Delete network {{ network.name }} and all its host data?');">
         <button type="submit" class="danger">Delete network</button>
       </form>
     </div>
+  </section>
+
+  <section class="panel" id="import-panel" hidden>
+    <h2>Import CSV</h2>
+    <form method="post" action="{{ url_for('import_hosts', network_id=network.id) }}" enctype="multipart/form-data" class="import-form">
+      <input type="file" name="file" accept=".csv,text/csv" required>
+      <button type="submit">Import CSV</button>
+    </form>
+    <p class="hint">Needs an <code>ip</code> (or <code>ip_address</code>) column, plus optional <code>hostname</code>, <code>description</code>, <code>mac_address</code>/<code>hw_address</code> columns — OPNsense DHCP static-mapping exports work directly. Rows for IPs outside this network or with an invalid MAC are skipped; matching IPs already assigned are updated.</p>
   </section>
 
   <section class="panel">
@@ -46,23 +64,6 @@
       <span id="add-host-message" class="row-message"></span>
     </form>
   </section>
-
-  <section class="panel">
-    <h2>Import / export</h2>
-    <div class="import-export">
-      <a class="button-link-btn" href="{{ url_for('export_hosts', network_id=network.id) }}">Export CSV</a>
-      <form method="post" action="{{ url_for('import_hosts', network_id=network.id) }}" enctype="multipart/form-data" class="import-form">
-        <input type="file" name="file" accept=".csv,text/csv" required>
-        <button type="submit">Import CSV</button>
-      </form>
-    </div>
-    <p class="hint">CSV needs an <code>ip</code> column, plus optional <code>hostname</code>, <code>description</code>, <code>mac_address</code> columns. Rows for IPs outside this network or with an invalid MAC are skipped; matching IPs already assigned are updated.</p>
-  </section>
-
-  {% set edit_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>{% endset %}
-  {% set save_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>{% endset %}
-  {% set trash_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>{% endset %}
-  {% set cancel_icon %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>{% endset %}
 
   <section class="panel">
     <table class="table host-table" id="host-table">

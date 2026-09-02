@@ -10,6 +10,8 @@
   const addMessage = document.getElementById("add-host-message");
   const usedCountEl = document.getElementById("used-count");
   const noHostsMessage = document.getElementById("no-hosts-message");
+  const toggleImportBtn = document.getElementById("toggle-import-btn");
+  const importPanel = document.getElementById("import-panel");
 
   const EDIT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
   const SAVE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
@@ -126,6 +128,18 @@
       row._original = null;
     }
     setEditing(row, false);
+  }
+
+  if (toggleImportBtn && importPanel) {
+    toggleImportBtn.addEventListener("click", () => {
+      const nowVisible = importPanel.hidden;
+      importPanel.hidden = !nowVisible;
+      toggleImportBtn.classList.toggle("active", nowVisible);
+      if (nowVisible) {
+        const fileInput = importPanel.querySelector("input[type=file]");
+        if (fileInput) fileInput.focus();
+      }
+    });
   }
 
   if (addForm) {
