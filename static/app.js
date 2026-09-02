@@ -215,6 +215,9 @@
 
       if (removeBtn) {
         if (removeBtn.disabled) return;
+        const hostname = row.querySelector(".hostname").value.trim();
+        const label = hostname ? `${hostname} (${ip})` : ip;
+        if (!confirm(`Remove ${label} from this network?`)) return;
         removeBtn.disabled = true;
         message.textContent = "Removing...";
         try {
