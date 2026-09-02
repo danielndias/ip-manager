@@ -162,10 +162,22 @@ button:disabled {
 .icon-btn.edit-row:hover { color: var(--accent); border-color: var(--accent); }
 .icon-btn.remove-row:hover { color: var(--danger); border-color: var(--danger); }
 
-tr.editing .icon-btn.edit-row {
+.icon-btn.save-row {
   background: var(--success);
   color: white;
   border-color: var(--success);
+}
+.icon-btn.save-row:hover { background: #3d9468; }
+
+.icon-btn.cancel-row:hover { color: var(--danger); border-color: var(--danger); }
+
+.host-table tr:not(.editing) .save-row,
+.host-table tr:not(.editing) .cancel-row {
+  display: none;
+}
+
+.host-table tr.editing .edit-row {
+  display: none;
 }
 
 button {

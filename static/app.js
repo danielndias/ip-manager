@@ -14,6 +14,7 @@
   const EDIT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
   const SAVE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
   const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+  const CANCEL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
 
   function ipToInt(ip) {
     return ip.split(".").reduce((acc, part) => acc * 256 + Number(part), 0);
@@ -79,6 +80,8 @@
       <td><input type="text" class="mac_address" value="${mac_address}" placeholder="AA:BB:CC:DD:EE:FF" readonly></td>
       <td class="col-actions">
         <button type="button" class="icon-btn edit-row" title="Edit" aria-label="Edit">${EDIT_ICON}</button>
+        <button type="button" class="icon-btn save-row" title="Save" aria-label="Save">${SAVE_ICON}</button>
+        <button type="button" class="icon-btn cancel-row" title="Discard changes" aria-label="Discard changes">${CANCEL_ICON}</button>
         <button type="button" class="icon-btn remove-row" title="Remove" aria-label="Remove">${TRASH_ICON}</button>
         <span class="row-message"></span>
       </td>
@@ -100,15 +103,29 @@
 
   function setEditing(row, editing) {
     const inputs = row.querySelectorAll("input");
+    if (editing) {
+      row._original = {
+        hostname: row.querySelector(".hostname").value,
+        description: row.querySelector(".description").value,
+        mac_address: row.querySelector(".mac_address").value,
+      };
+    }
     inputs.forEach((input) => {
       input.readOnly = !editing;
     });
-    const editBtn = row.querySelector(".edit-row");
-    editBtn.innerHTML = editing ? SAVE_ICON : EDIT_ICON;
-    editBtn.title = editing ? "Save" : "Edit";
-    editBtn.setAttribute("aria-label", editBtn.title);
+    row.querySelector(".remove-row").disabled = editing;
     row.classList.toggle("editing", editing);
     if (editing) inputs[0].focus();
+  }
+
+  function cancelEditing(row) {
+    if (row._original) {
+      row.querySelector(".hostname").value = row._original.hostname;
+      row.querySelector(".description").value = row._original.description;
+      row.querySelector(".mac_address").value = row._original.mac_address;
+      row._original = null;
+    }
+    setEditing(row, false);
   }
 
   if (addForm) {
@@ -163,14 +180,27 @@
   if (table) {
     table.addEventListener("click", async (event) => {
       const editBtn = event.target.closest(".edit-row");
+      const saveBtn = event.target.closest(".save-row");
+      const cancelBtn = event.target.closest(".cancel-row");
       const removeBtn = event.target.closest(".remove-row");
-      if (!editBtn && !removeBtn) return;
+      if (!editBtn && !saveBtn && !cancelBtn && !removeBtn) return;
 
       const row = event.target.closest("tr");
       const ip = row.dataset.ip;
       const message = row.querySelector(".row-message");
 
+      if (editBtn) {
+        setEditing(row, true);
+        return;
+      }
+
+      if (cancelBtn) {
+        cancelEditing(row);
+        return;
+      }
+
       if (removeBtn) {
+        if (removeBtn.disabled) return;
         removeBtn.disabled = true;
         message.textContent = "Removing...";
         try {
@@ -192,17 +222,12 @@
         return;
       }
 
-      // edit-row button: first click enters edit mode, second click saves
-      if (!row.classList.contains("editing")) {
-        setEditing(row, true);
-        return;
-      }
-
+      // saveBtn
       const hostname = row.querySelector(".hostname").value.trim();
       const description = row.querySelector(".description").value.trim();
       const mac_address = row.querySelector(".mac_address").value.trim();
 
-      editBtn.disabled = true;
+      saveBtn.disabled = true;
       message.textContent = "Saving...";
       message.className = "row-message";
 
@@ -224,6 +249,7 @@
         }
 
         row.querySelector(".mac_address").value = data.mac_address;
+        row._original = null;
         setEditing(row, false);
         message.textContent = "Saved";
         message.className = "row-message success";
@@ -231,7 +257,7 @@
         message.textContent = err.message;
         message.className = "row-message error";
       } finally {
-        editBtn.disabled = false;
+        saveBtn.disabled = false;
         setTimeout(() => {
           message.textContent = "";
           message.className = "row-message";
