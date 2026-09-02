@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Networks · IP Manager{% endblock %}
+{% block content %}
+  <section class="panel">
+    <h1>Networks</h1>
+    <form class="new-network-form" method="post" action="{{ url_for('create_network') }}">
+      <div class="field">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Home LAN" required>
+      </div>
+      <div class="field">
+        <label for="cidr">Network (CIDR)</label>
+        <input type="text" id="cidr" name="cidr" placeholder="192.168.1.0/24" pattern="^\d{1,3}(\.\d{1,3}){3}/\d{1,2}$" required>
+      </div>
+      <button type="submit">Create network</button>
+    </form>
+    <p class="hint">Enter the network address and mask, e.g. <code>192.168.1.0/24</code>. Max {{ 4096 }} usable addresses per network.</p>
+  </section>
+
+  <section class="panel">
+    {% if networks %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>CIDR</th>
+            <th>Used / Total</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for n in networks %}
+            <tr>
+              <td><a href="{{ url_for('network_detail', network_id=n.id) }}">{{ n.name }}</a></td>
+              <td><code>{{ n.cidr }}</code></td>
+              <td>{{ n.used_count }} / {{ n.total }}</td>
+              <td>{{ n.created_at }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">No networks yet. Create one above to get started.</p>
+    {% endif %}
+  </section>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ network.name }} · IP Manager{% endblock %}
+{% block content %}
+  <section class="panel network-header">
+    <div>
+      <h1>{{ network.name }}</h1>
+      <p class="subtitle"><code>{{ cidr }}</code> &middot; <span id="used-count">{{ used_count }}</span> / {{ total_count }} addresses in use</p>
+    </div>
+    <div class="header-actions">
+      <a class="button-link" href="{{ url_for('index') }}">&larr; All networks</a>
+      <form method="post" action="{{ url_for('delete_network', network_id=network.id) }}"
+            onsubmit="return confirm('Delete network {{ network.name }} and all its host data?');">
+        <button type="submit" class="danger">Delete network</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Add a host</h2>
+    <form id="add-host-form" class="add-host-form">
+      <div class="field">
+        <label for="add-ip">IP address</label>
+        <select id="add-ip" required {{ "disabled" if not free_ips else "" }}>
+          {% if not free_ips %}
+            <option value="">No free addresses left</option>
+          {% else %}
+            {% for ip in free_ips %}
+              <option value="{{ ip }}">{{ ip }}</option>
+            {% endfor %}
+          {% endif %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="add-hostname">Hostname</label>
+        <input type="text" id="add-hostname" placeholder="e.g. printer">
+      </div>
+      <div class="field">
+        <label for="add-description">Description</label>
+        <input type="text" id="add-description" placeholder="notes">
+      </div>
+      <div class="field">
+        <label for="add-mac">MAC address</label>
+        <input type="text" id="add-mac" placeholder="AA:BB:CC:DD:EE:FF">
+      </div>
+      <button type="submit" {{ "disabled" if not free_ips else "" }}>Add</button>
+      <span id="add-host-message" class="row-message"></span>
+    </form>
+  </section>
+
+  <section class="panel">
+    <table class="table host-table" id="host-table">
+      <thead>
+        <tr>
+          <th class="col-ip">IP address</th>
+          <th>Hostname</th>
+          <th>Description</th>
+          <th>MAC address</th>
+          <th class="col-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in hosts %}
+          <tr data-ip="{{ h.ip }}">
+            <td class="col-ip"><code>{{ h.ip }}</code></td>
+            <td><input type="text" class="hostname" value="{{ h.hostname }}" placeholder="e.g. printer"></td>
+            <td><input type="text" class="description" value="{{ h.description }}" placeholder="notes"></td>
+            <td><input type="text" class="mac_address" value="{{ h.mac_address }}" placeholder="AA:BB:CC:DD:EE:FF"></td>
+            <td class="col-actions">
+              <button type="button" class="save-row">Save</button>
+              <button type="button" class="remove-row danger">Remove</button>
+              <span class="row-message"></span>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if not hosts %}
+      <p class="empty" id="no-hosts-message">No hosts assigned yet. Add one above.</p>
+    {% endif %}
+  </section>
+
+  <script src="{{ url_for('static', filename='app.js') }}"
+          data-save-url="{{ url_for('upsert_host', network_id=network.id) }}"
+          data-remove-url="{{ url_for('remove_host', network_id=network.id) }}"></script>
+{% endblock %}
